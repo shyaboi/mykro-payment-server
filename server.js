@@ -1,6 +1,18 @@
 const express = require("express");
 const app = express();
 require('dotenv').config()
+var cors = require('cors')
+app.use(cors())
+var bodyParser = require('body-parser')
+
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.use(function (req, res, next) {
+  console.log(req.body) // populated!
+  next()
+})
 
 const testPKey = process.env.TESTP
 const testSKey = process.env.TESTS
@@ -19,19 +31,22 @@ app.use(express.static("."));
 app.use(express.json());
 
 const calculateOrderAmount = items => {
-  // Replace this constant with a calculation of the order's amount
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client
-  return 1400;
+  //TODO REplace with oracle price of ETH
+  const num = Math.floor(Math.random() * 400000)
+  return num;
 };
 
 app.post("/create-payment-intent", async (req, res) => {
+
   const { items } = req.body;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: calculateOrderAmount(items),
-    currency: "usd"
+    currency: "usd",
+    statement_descriptor: "ETH 4 Cash Exchange",
+    statement_descriptor_suffix: 'ETH4Cash',
   });
+  console.log(items, paymentIntent.items, paymentIntent.amount)
 
   res.send({
     clientSecret: paymentIntent.client_secret
